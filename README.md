@@ -1,5 +1,6 @@
 # proxy-checker
 this project checks the proxies using proxy list
+#### if you face any problem contact with me at ###fb: https://www.facebook.com/taylor.ackerley.9
 ### Params
 ###### proxies Path -> list for the proxies to be tested
 ###### non-working proxies path -> output path for the non-working proxies after being tested
