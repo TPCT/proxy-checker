@@ -160,7 +160,7 @@ class tpctProxyChecker:
           / \  |  \/||  /    / \    |  \/||  \/|| / \| \  /  \  / 
           | |  |  __/|  \__  | |    |  __/|    /| \_/| /  \  / /  
           \_/  \_/   \____/  \_/    \_/   \_/\_\\____//__/\\/_/   
-        https://www.facebook.com/taylor.ackerly.9
+        https://www.facebook.com/taylor.ackerley.9
         https://www.github.com/TPCT
         '''
         print(greetingMsg)
