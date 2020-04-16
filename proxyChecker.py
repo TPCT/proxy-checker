@@ -5,6 +5,7 @@ class tpctProxyChecker:
         self.inputProxies = None  # file that contains input proxies
         self.outputWorkingProxies = None  # file that will contain Working Proxies
         self.outputNonWorkingProxies = None  # file that non-working proxies will be appended to
+        self.finishedProxies = None # file that finished proxies will be save to
         self.proxyUsername = None  # username used to login to the proxy
         self.proxyPassword = None  # password used to login to the proxy
         self.proxyIp = None  # proxy Server Ip
@@ -135,7 +136,8 @@ class tpctProxyChecker:
         """
         import re
         with open(self.inputProxies, 'r') as proxiesReader, open(self.outputWorkingProxies, 'a+') as workingProxiesWriter,\
-                open(self.outputNonWorkingProxies, 'a+') as nonworkingProxiesWriter:
+                open(self.outputNonWorkingProxies, 'a+') as nonworkingProxiesWriter, \
+                open(self.finishedProxies, 'a+') as finishedProxiesWriter:
             searchingPattern = '((.*)\:(.*)?@)?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d{1,5})'
             for proxy in proxiesReader:
                 proxy = proxy.rstrip().rstrip('\\/')
@@ -149,6 +151,8 @@ class tpctProxyChecker:
                 else:
                     nonworkingProxiesWriter.write('%s\n' % proxy)
                     print(' --->  Not Working')
+                finishedProxiesWriter.write("%s\n" % proxy)
+                finishedProxiesWriter.flush()
                 workingProxiesWriter.flush()
                 nonworkingProxiesWriter.flush()
 
@@ -168,15 +172,16 @@ class tpctProxyChecker:
             inputProxiesPath = input('Please enter input proxies path: ').strip().strip('\'"')
             nonWorkingProxiesPath = input('Please enter non-working proxies path: ').strip().strip('\'"')
             workingProxiesPath = input('Please enter working proxies path: ').strip().strip('\'"')
+            finishedProxiesPath = input('please enter finished Proxies Path: ').strip().strip('\'"')
             disconnectionTime = input('Please enter disconnection time: ').strip()
             testingWebsite = input('please enter website to test: ').strip()
             if path.isfile(inputProxiesPath) and \
-               nonWorkingProxiesPath.strip().strip('/\\') and \
-               workingProxiesPath.strip().strip('/\\') and str(disconnectionTime).isalnum():
+               nonWorkingProxiesPath.strip().strip('/\\')
                 self.inputProxies = inputProxiesPath
-                self.outputWorkingProxies = workingProxiesPath
-                self.outputNonWorkingProxies = nonWorkingProxiesPath
-                self.disconnectionTime = int(disconnectionTime)
+                self.outputWorkingProxies = workingProxiesPath if workingProxiesPath else 'validProxies.txt'
+                self.outputNonWorkingProxies = nonWorkingProxiesPath if nonWorkingProxiesPath else 'invalidProxies.txt'
+                self.finishedProxies = finishedProxiesPath if finishedProxiesPath else 'finishedProxies.txt'
+                self.disconnectionTime = int(disconnectionTime) if disconnectionTime.isalnum() else 1
                 self.testingWebsite = testingWebsite
                 self.proxylistIterator()
 
