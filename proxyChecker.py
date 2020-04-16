@@ -176,7 +176,7 @@ class tpctProxyChecker:
             disconnectionTime = input('Please enter disconnection time: ').strip()
             testingWebsite = input('please enter website to test: ').strip()
             if path.isfile(inputProxiesPath) and \
-               nonWorkingProxiesPath.strip().strip('/\\')
+               nonWorkingProxiesPath.strip().strip('/\\'):
                 self.inputProxies = inputProxiesPath
                 self.outputWorkingProxies = workingProxiesPath if workingProxiesPath else 'validProxies.txt'
                 self.outputNonWorkingProxies = nonWorkingProxiesPath if nonWorkingProxiesPath else 'invalidProxies.txt'
