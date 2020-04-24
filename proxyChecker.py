@@ -158,6 +158,8 @@ class tpctProxyChecker:
         pass
 
     def threadPoolRemove(self):
+        from time import time
+        startTime = time()
         while True:
             for thread in self.Pool['threadsPool']:
                 if not thread.is_alive():
@@ -165,6 +167,7 @@ class tpctProxyChecker:
                 thread.join()
             if self.Pool['started'] and not self.Pool['threadsPool']:
                 break
+        print('Time taken to scan %s proxies: ' % self.finishedCounter, time()-startTime)
         self.Pool['started'] = False
         self.workingProxiesWriter.close()
         self.nonworkingProxiesWriter.close()
