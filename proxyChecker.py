@@ -210,7 +210,13 @@ class tpctProxyChecker:
             while len(self.Pool['threadsPool']) == self.maxThreadsNumber:
                 pass
             proxyThread = Thread(target=self.proxyCheckerThread, args=(proxy, ))
-            proxyThread.start()
+            try:
+                proxyThread.start()
+            except RuntimeError:
+                self.maxThreadsNumber = len(self.Pool['threadsPool']) - 1
+                while len(self.Pool['threadsPool']) == self.maxThreadsNumber:
+                    pass
+                proxyThread.start()
             self.Pool['started'] = True
             self.Pool['threadsPool'].append(proxyThread)
         checkerThread.join()
