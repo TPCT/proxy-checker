@@ -135,6 +135,8 @@ class tpctProxyChecker:
             return test
 
     def __init__(self):
+        from warnings import simplefilter
+        simplefilter('ignore')
         self.maxThreadsNumber = None
         self.inputProxies = None
         self.outputWorkingProxies = None
