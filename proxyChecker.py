@@ -216,8 +216,7 @@ class tpctProxyChecker:
             proxy = proxy.rstrip().rstrip('\\/')
             if not proxy:
                 continue
-            checked = False
-            while not checked:
+            while True:
                 try:
                     while len(self.Pool['threadsPool']) == self.maxThreadsNumber:
                         pass
@@ -229,9 +228,10 @@ class tpctProxyChecker:
                 except RuntimeError:
                     pass
 
+        self.totalChecked = True
+
         checkerThread.join()
 
-        self.totalChecked = True
 
     def start(self):
         from os import path
