@@ -19,7 +19,7 @@ class tpctProxyChecker:
             from urllib3.exceptions import ReadTimeoutError, MaxRetryError
 
             httpSession = Session()
-            httpSession.mount(self.testingWebsite, HTTPAdapter(max_retries=5))
+            httpSession.mount(self.testingWebsite, HTTPAdapter(max_retries=1))
             proxydict = {'http': 'http://%s:%s@%s:%s' % (self.proxyUsername,
                                                          self.proxyPassword,
                                                          self.proxyIp,
@@ -39,19 +39,19 @@ class tpctProxyChecker:
                 return True
             except Exception as e:
                 for x in e.args:
-                    if isinstance(x, MaxRetryError):
-                        for y in x.args:
-                            if isinstance(y, ReadTimeoutError):
-                                return True
-                return False
+                    if isinstance(x, MaxRetryError) and isinstance(x.args[0], ReadTimeoutError):
+                        return True
+                    if isinstance(x, ReadTimeoutError):
+                        return True
+                    return False
 
         def __checkProxyHttps(self):
             from requests.adapters import HTTPAdapter
-            from requests import exceptions, Session
+            from requests import Session
             from urllib3.exceptions import ReadTimeoutError, MaxRetryError
 
             httpSession = Session()
-            httpSession.mount(self.testingWebsite, HTTPAdapter(max_retries=5))
+            httpSession.mount(self.testingWebsite, HTTPAdapter(max_retries=1))
             proxydict = {'http': 'https://%s:%s@%s:%s' % (self.proxyUsername,
                                                           self.proxyPassword,
                                                           self.proxyIp,
@@ -71,19 +71,19 @@ class tpctProxyChecker:
                 return True
             except Exception as e:
                 for x in e.args:
-                    if isinstance(x, MaxRetryError):
-                        for y in x.args:
-                            if isinstance(y, ReadTimeoutError):
-                                return True
-                return False
+                    if isinstance(x, MaxRetryError) and isinstance(x.args[0], ReadTimeoutError):
+                        return True
+                    if isinstance(x, ReadTimeoutError):
+                        return True
+                    return False
 
         def __checkProxySock5(self):
             from requests.adapters import HTTPAdapter
-            from requests import exceptions, Session
+            from requests import Session
             from urllib3.exceptions import ReadTimeoutError, MaxRetryError
 
             httpSession = Session()
-            httpSession.mount(self.testingWebsite, HTTPAdapter(max_retries=5))
+            httpSession.mount(self.testingWebsite, HTTPAdapter(max_retries=1))
             proxydict = {'http': 'socks5://%s:%s@%s:%s' % (self.proxyUsername,
                                                            self.proxyPassword,
                                                            self.proxyIp,
@@ -103,19 +103,19 @@ class tpctProxyChecker:
                 return True
             except Exception as e:
                 for x in e.args:
-                    if isinstance(x, MaxRetryError):
-                        for y in x.args:
-                            if isinstance(y, ReadTimeoutError):
-                                return True
-                return False
+                    if isinstance(x, MaxRetryError) and isinstance(x.args[0], ReadTimeoutError):
+                        return True
+                    if isinstance(x, ReadTimeoutError):
+                        return True
+                    return False
 
         def __checkProxySock4(self):
             from requests.adapters import HTTPAdapter
-            from requests import exceptions, Session
+            from requests import Session
             from urllib3.exceptions import ReadTimeoutError, MaxRetryError
 
             httpSession = Session()
-            httpSession.mount(self.testingWebsite, HTTPAdapter(max_retries=5))
+            httpSession.mount(self.testingWebsite, HTTPAdapter(max_retries=1))
             proxydict = {'http': 'socks4://%s:%s@%s:%s' % (self.proxyUsername,
                                                            self.proxyPassword,
                                                            self.proxyIp,
@@ -135,11 +135,11 @@ class tpctProxyChecker:
                 return True
             except Exception as e:
                 for x in e.args:
-                    if isinstance(x, MaxRetryError):
-                        for y in x.args:
-                            if isinstance(y, ReadTimeoutError):
-                                return True
-                return False
+                    if isinstance(x, MaxRetryError) and isinstance(x.args[0], ReadTimeoutError):
+                        return True
+                    if isinstance(x, ReadTimeoutError):
+                        return True
+                    return False
 
         def checkProxy(self):
 
