@@ -160,6 +160,7 @@ class tpctProxyChecker:
         self.workingProxiesWriter = None
         self.nonworkingProxiesWriter = None
         self.finishedProxiesWriter = None
+        self.totalChecked = False
         self.Pool = dict(started=False, threadsPool=list())
         self.workingCounter = 0
         self.nonWorkingCounter = 0
@@ -175,7 +176,7 @@ class tpctProxyChecker:
                 if not thread.is_alive():
                     self.Pool['threadsPool'].remove(thread)
                 thread.join()
-            if self.Pool['started'] and not self.Pool['threadsPool']:
+            if self.Pool['started'] and not self.Pool['threadsPool'] and self.totalChecked:
                 break
         print('Time taken to scan %s proxies: ' % self.finishedCounter, time()-startTime)
         self.Pool['started'] = False
@@ -230,6 +231,8 @@ class tpctProxyChecker:
 
         checkerThread.join()
 
+        self.totalChecked = True
+
     def start(self):
         from os import path
         greetingMsg = '''
@@ -251,6 +254,26 @@ class tpctProxyChecker:
                 self.finishedProxiesWriter.close()
             if self.proxiesReader:
                 self.proxiesReader.close()
+            self.maxThreadsNumber = None
+            self.inputProxies = None
+            self.outputWorkingProxies = None
+            self.outputNonWorkingProxies = None
+            self.finishedProxies = None
+            self.proxyUsername = None
+            self.proxyPassword = None
+            self.proxyIp = None
+            self.proxyPort = None
+            self.disconnectionTime = None
+            self.testingWebsite = None
+            self.proxiesReader = None
+            self.workingProxiesWriter = None
+            self.nonworkingProxiesWriter = None
+            self.finishedProxiesWriter = None
+            self.totalChecked = False
+            self.Pool = dict(started=False, threadsPool=list())
+            self.workingCounter = 0
+            self.nonWorkingCounter = 0
+            self.finishedCounter = 0
             inputProxiesPath = input('Please enter input proxies path: ').strip().strip('\'"')
             nonWorkingProxiesPath = input('Please enter non-working proxies path: ').strip().strip('\'"')
             workingProxiesPath = input('Please enter working proxies path: ').strip().strip('\'"')
