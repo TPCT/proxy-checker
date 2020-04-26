@@ -217,7 +217,7 @@ class tpctProxyChecker:
         self.finishedProxiesWriter = open(self.finishedProxies, 'a+')
         for proxy in self.proxiesReader:
             proxy = proxy.rstrip().rstrip('\\/')
-            if not proxy
+            if not proxy:
                 continue
             checked = False
             while not checked:
