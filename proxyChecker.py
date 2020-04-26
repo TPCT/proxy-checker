@@ -185,9 +185,9 @@ class tpctProxyChecker:
         self.proxiesReader.close()
 
     def proxyCheckerThread(self, proxyLine):
+        proxy = proxyLine.rstrip().rstrip('\\/')
         from re import match
         searchingPattern = '((.*)\:(.*)?@)?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d{1,5})'
-        proxy = proxyLine.rstrip().rstrip('\\/')
         splitter = match(searchingPattern, proxy)
         proxyUsername, proxyPassword, proxyIp, proxyPort = splitter.groups()[1:]
         outputProxy = self.proxyChecker(proxyIp, proxyPort, proxyUsername, proxyPassword,
@@ -217,6 +217,8 @@ class tpctProxyChecker:
         self.finishedProxiesWriter = open(self.finishedProxies, 'a+')
         for proxy in self.proxiesReader:
             proxy = proxy.rstrip().rstrip('\\/')
+            if not proxy
+                continue
             checked = False
             while not checked:
                 try:
