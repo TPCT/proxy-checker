@@ -179,10 +179,6 @@ class tpctProxyChecker:
                 break
         print('Time taken to scan %s proxies: ' % self.finishedCounter, time()-startTime)
         self.Pool['started'] = False
-        self.workingProxiesWriter.close()
-        self.nonworkingProxiesWriter.close()
-        self.finishedProxiesWriter.close()
-        self.proxiesReader.close()
 
     def proxyCheckerThread(self, proxyLine):
         proxy = proxyLine.rstrip().rstrip('\\/')
@@ -247,6 +243,14 @@ class tpctProxyChecker:
         '''
         print(greetingMsg)
         while True:
+            if self.workingProxiesWriter:
+                self.workingProxiesWriter.close()
+            if self.nonworkingProxiesWriter:
+                self.nonworkingProxiesWriter.close()
+            if self.finishedProxiesWriter:
+                self.finishedProxiesWriter.close()
+            if self.proxiesReader:
+                self.proxiesReader.close()
             inputProxiesPath = input('Please enter input proxies path: ').strip().strip('\'"')
             nonWorkingProxiesPath = input('Please enter non-working proxies path: ').strip().strip('\'"')
             workingProxiesPath = input('Please enter working proxies path: ').strip().strip('\'"')
