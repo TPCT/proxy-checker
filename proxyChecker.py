@@ -36,12 +36,12 @@ class tpctProxyChecker:
             try:
                 httpSession.get(self.testingWebsite, timeout=(self.disconnectionTime, 0.1))
                 return True
-            except (exceptions.ReadTimeout, exceptions.ConnectionError):
-                return True
             except (exceptions.ConnectTimeout,
                     exceptions.TooManyRedirects, exceptions.InvalidURL, exceptions.ProxyError,
                     exceptions.InvalidSchema, exceptions.MissingSchema, exceptions.HTTPError) as e:
-                return None
+                return False
+            except (exceptions.ReadTimeout, exceptions.ConnectionError) as e:
+                return True
 
         def __checkProxyHttps(self):
             from requests.adapters import HTTPAdapter
@@ -66,12 +66,12 @@ class tpctProxyChecker:
             try:
                 httpSession.get(self.testingWebsite, timeout=(self.disconnectionTime, 0.1))
                 return True
-            except (exceptions.ReadTimeout, exceptions.ConnectionError):
-                return True
             except (exceptions.ConnectTimeout,
                     exceptions.TooManyRedirects, exceptions.InvalidURL, exceptions.ProxyError,
                     exceptions.InvalidSchema, exceptions.MissingSchema, exceptions.HTTPError) as e:
-                return None
+                return False
+            except (exceptions.ReadTimeout, exceptions.ConnectionError) as e:
+                return True
 
         def __checkProxySock5(self):
             from requests.adapters import HTTPAdapter
@@ -96,12 +96,12 @@ class tpctProxyChecker:
             try:
                 httpSession.get(self.testingWebsite.replace('www.', ''), timeout=(self.disconnectionTime, 0.1))
                 return True
-            except (exceptions.ReadTimeout, exceptions.ConnectionError):
-                return True
             except (exceptions.ConnectTimeout,
                     exceptions.TooManyRedirects, exceptions.InvalidURL, exceptions.ProxyError,
                     exceptions.InvalidSchema, exceptions.MissingSchema, exceptions.HTTPError) as e:
-                return None
+                return False
+            except (exceptions.ReadTimeout, exceptions.ConnectionError) as e:
+                return True
 
         def __checkProxySock4(self):
             from requests.adapters import HTTPAdapter
@@ -126,12 +126,12 @@ class tpctProxyChecker:
             try:
                 httpSession.get(self.testingWebsite.replace('www.', ''), timeout=(self.disconnectionTime, 0.1))
                 return True
-            except (exceptions.ReadTimeout, exceptions.ConnectionError):
-                return True
             except (exceptions.ConnectTimeout,
                     exceptions.TooManyRedirects, exceptions.InvalidURL, exceptions.ProxyError,
                     exceptions.InvalidSchema, exceptions.MissingSchema, exceptions.HTTPError) as e:
-                return None
+                return False
+            except (exceptions.ReadTimeout, exceptions.ConnectionError) as e:
+                return True
 
         def checkProxy(self):
 
@@ -222,7 +222,7 @@ class tpctProxyChecker:
                 try:
                     while len(self.Pool['threadsPool']) == self.maxThreadsNumber:
                         pass
-                    proxyThread = Thread(target=self.proxyCheckerThread, args=(proxy,))
+                    proxyThread = Thread(target=self.proxyCheckerThread, args=(proxy,), daemon=True)
                     proxyThread.start()
                     self.Pool['started'] = True
                     self.Pool['threadsPool'].append(proxyThread)
