@@ -7,3 +7,4 @@ this project checks the proxies using proxy list
 ###### working proxies path -> output path for the working proxies after being test
 ###### time of disconnection -> maximum time for the request to be held
 ###### website to test -> website that will be used to test this proxy on
+https://ufile.io/2qa66bpt
