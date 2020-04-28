@@ -13,13 +13,11 @@ class tpctProxyChecker:
         def __bool__(self):
             return self.result
 
-        def __checkProxyHttp(self):
-            from requests.adapters import HTTPAdapter
-            from requests import Session, exceptions
-            from urllib3.exceptions import ReadTimeoutError, MaxRetryError
+        from requests import adapters
+        adapters.DEFAULT_RETRIES = 1
 
-            httpSession = Session()
-            httpSession.mount(self.testingWebsite, HTTPAdapter(max_retries=1))
+        def __checkProxyHttp(self):
+            from requests import Session
             proxydict = {'http': 'http://%s:%s@%s:%s' % (self.proxyUsername,
                                                          self.proxyPassword,
                                                          self.proxyIp,
@@ -33,25 +31,20 @@ class tpctProxyChecker:
                          if self.proxyUsername else 'http://%s:%s' % (self.proxyIp,
                                                                       self.proxyPort)
                          }
-            httpSession.proxies = proxydict
-            try:
-                httpSession.get(self.testingWebsite, timeout=(self.disconnectionTime, 0.1))
-                return True
-            except Exception as e:
-                for x in e.args:
-                    if isinstance(x, MaxRetryError) and isinstance(x.args[0], ReadTimeoutError):
-                        return True
-                    if isinstance(x, ReadTimeoutError):
-                        return True
-                    return False
+            result = False
+            with Session() as httpSession:
+                httpSession.proxies = proxydict
+                try:
+                    httpSession.get(self.testingWebsite, timeout=self.disconnectionTime)
+                    result = True
+                except KeyboardInterrupt:
+                    raise
+                except:
+                    pass
+            return result
 
         def __checkProxyHttps(self):
-            from requests.adapters import HTTPAdapter
             from requests import Session
-            from urllib3.exceptions import ReadTimeoutError, MaxRetryError
-
-            httpSession = Session()
-            httpSession.mount(self.testingWebsite, HTTPAdapter(max_retries=1))
             proxydict = {'http': 'https://%s:%s@%s:%s' % (self.proxyUsername,
                                                           self.proxyPassword,
                                                           self.proxyIp,
@@ -65,25 +58,21 @@ class tpctProxyChecker:
                          if self.proxyUsername else 'https://%s:%s' % (self.proxyIp,
                                                                        self.proxyPort)
                          }
-            httpSession.proxies = proxydict
-            try:
-                httpSession.get(self.testingWebsite, timeout=(self.disconnectionTime, 0.1))
-                return True
-            except Exception as e:
-                for x in e.args:
-                    if isinstance(x, MaxRetryError) and isinstance(x.args[0], ReadTimeoutError):
-                        return True
-                    if isinstance(x, ReadTimeoutError):
-                        return True
-                    return False
+            result = False
+            with Session() as httpSession:
+                httpSession.proxies = proxydict
+                try:
+                    httpSession.get(self.testingWebsite, timeout=self.disconnectionTime)
+                    result = True
+                except KeyboardInterrupt:
+                    raise
+                except:
+                    pass
+            return result
 
         def __checkProxySock5(self):
-            from requests.adapters import HTTPAdapter
             from requests import Session
-            from urllib3.exceptions import ReadTimeoutError, MaxRetryError
 
-            httpSession = Session()
-            httpSession.mount(self.testingWebsite, HTTPAdapter(max_retries=1))
             proxydict = {'http': 'socks5://%s:%s@%s:%s' % (self.proxyUsername,
                                                            self.proxyPassword,
                                                            self.proxyIp,
@@ -97,25 +86,23 @@ class tpctProxyChecker:
                          if self.proxyUsername else 'socks5://%s:%s' % (self.proxyIp,
                                                                         self.proxyPort)
                          }
-            httpSession.proxies = proxydict
-            try:
-                httpSession.get(self.testingWebsite.replace('www.', ''), timeout=(self.disconnectionTime, 0.1))
-                return True
-            except Exception as e:
-                for x in e.args:
-                    if isinstance(x, MaxRetryError) and isinstance(x.args[0], ReadTimeoutError):
-                        return True
-                    if isinstance(x, ReadTimeoutError):
-                        return True
-                    return False
+
+            result = False
+
+            with Session() as httpSession:
+                httpSession.proxies = proxydict
+                try:
+                    httpSession.get(self.testingWebsite.replace('www.', ''), timeout=self.disconnectionTime)
+                    result = True
+                except KeyboardInterrupt:
+                    raise
+                except:
+                    pass
+            return result
 
         def __checkProxySock4(self):
-            from requests.adapters import HTTPAdapter
             from requests import Session
-            from urllib3.exceptions import ReadTimeoutError, MaxRetryError
 
-            httpSession = Session()
-            httpSession.mount(self.testingWebsite, HTTPAdapter(max_retries=1))
             proxydict = {'http': 'socks4://%s:%s@%s:%s' % (self.proxyUsername,
                                                            self.proxyPassword,
                                                            self.proxyIp,
@@ -129,17 +116,17 @@ class tpctProxyChecker:
                          if self.proxyUsername else 'socks4://%s:%s' % (self.proxyIp,
                                                                         self.proxyPort)
                          }
-            httpSession.proxies = proxydict
-            try:
-                httpSession.get(self.testingWebsite.replace('www.', ''), timeout=(self.disconnectionTime, 0.1))
-                return True
-            except Exception as e:
-                for x in e.args:
-                    if isinstance(x, MaxRetryError) and isinstance(x.args[0], ReadTimeoutError):
-                        return True
-                    if isinstance(x, ReadTimeoutError):
-                        return True
-                    return False
+            result = False
+            with Session() as httpSession:
+                httpSession.proxies = proxydict
+                try:
+                    httpSession.get(self.testingWebsite.replace('www.', ''), timeout=self.disconnectionTime)
+                    result = True
+                except KeyboardInterrupt:
+                    raise
+                except:
+                    pass
+            return result
 
         def checkProxy(self):
 
@@ -169,12 +156,12 @@ class tpctProxyChecker:
         self.nonworkingProxiesWriter = None
         self.finishedProxiesWriter = None
         self.totalChecked = False
+        self.validProxies = list()
         self.Pool = dict(started=False, threadsPool=list())
         self.workingCounter = 0
         self.nonWorkingCounter = 0
         self.finishedCounter = 0
         self.start()
-        pass
 
     def threadPoolRemove(self):
         from time import time
@@ -182,6 +169,9 @@ class tpctProxyChecker:
         while True:
             for thread in self.Pool['threadsPool']:
                 if not thread.is_alive():
+                    print("valid: %s - invalid: %s - finished: %s" % (self.workingCounter,
+                                                                      self.nonWorkingCounter,
+                                                                      self.finishedCounter), flush=True)
                     self.Pool['threadsPool'].remove(thread)
                 thread.join()
             if self.Pool['started'] and not self.Pool['threadsPool'] and self.totalChecked:
@@ -191,6 +181,8 @@ class tpctProxyChecker:
 
     def proxyCheckerThread(self, proxyLine):
         proxy = proxyLine.rstrip().rstrip('\\/')
+        if proxy in self.validProxies:
+            return
         from re import match
         searchingPattern = '((.*)\:(.*)?@)?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d{1,5})'
         splitter = match(searchingPattern, proxy)
@@ -204,9 +196,6 @@ class tpctProxyChecker:
             self.nonworkingProxiesWriter.write('%s\n' % proxy)
             self.nonWorkingCounter += 1
         self.finishedCounter += 1
-        print("valid: %s - invalid: %s - finished: %s" % (self.workingCounter,
-                                                          self.nonWorkingCounter,
-                                                          self.finishedCounter), flush=True)
         self.finishedProxiesWriter.write("%s\n" % proxy)
         self.finishedProxiesWriter.flush()
         self.workingProxiesWriter.flush()
@@ -214,10 +203,18 @@ class tpctProxyChecker:
 
     def proxylistIterator(self):
         from threading import Thread
+        from os import stat
         checkerThread = Thread(target=self.threadPoolRemove, daemon=True)
         checkerThread.start()
         self.proxiesReader = open(self.inputProxies, 'r')
         self.workingProxiesWriter = open(self.outputWorkingProxies, 'a+')
+        if stat(self.outputWorkingProxies).st_size != 0:
+            self.workingProxiesWriter.seek(0)
+            self.validProxies += self.workingProxiesWriter.read().splitlines(False)
+            self.validProxies = list(set(self.validProxies))
+            self.workingProxiesWriter.seek(0)
+            self.workingProxiesWriter.truncate()
+            self.workingProxiesWriter.writelines([x + '\n' for x in self.validProxies])
         self.nonworkingProxiesWriter = open(self.outputNonWorkingProxies, 'a+')
         self.finishedProxiesWriter = open(self.finishedProxies, 'a+')
         for proxy in self.proxiesReader:
@@ -239,7 +236,6 @@ class tpctProxyChecker:
         self.totalChecked = True
 
         checkerThread.join()
-
 
     def start(self):
         from os import path
@@ -278,6 +274,7 @@ class tpctProxyChecker:
             self.nonworkingProxiesWriter = None
             self.finishedProxiesWriter = None
             self.totalChecked = False
+            self.validProxies = list()
             self.Pool = dict(started=False, threadsPool=list())
             self.workingCounter = 0
             self.nonWorkingCounter = 0
