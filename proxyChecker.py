@@ -157,7 +157,7 @@ class tpctProxyChecker:
         self.finishedProxiesWriter = None
         self.totalChecked = False
         self.validProxies = list()
-        self.Pool = dict(started=False, threadsPool=list())
+        self.Pool = dict(started=False, threadsPool=list(), threadsPoolCounter = 0)
         self.workingCounter = 0
         self.nonWorkingCounter = 0
         self.finishedCounter = 0
@@ -166,16 +166,15 @@ class tpctProxyChecker:
     def threadPoolRemove(self):
         from time import time
         startTime = time()
-        while True:
-            for thread in self.Pool['threadsPool']:
-                if not thread.is_alive():
-                    print("valid: %s - invalid: %s - finished: %s" % (self.workingCounter,
-                                                                      self.nonWorkingCounter,
-                                                                      self.finishedCounter), flush=True)
-                    self.Pool['threadsPool'].remove(thread)
-                thread.join()
-            if self.Pool['started'] and not self.Pool['threadsPool'] and self.totalChecked:
-                break
+        counter = 0
+        while self.Pool['threadsPool'] or not self.totalChecked:
+            thread = self.Pool['threadsPool'][counter % len(self.Pool['threadsPool'])] if self.Pool['threadsPool'] \
+                else None
+            if thread and not thread.is_alive():
+                self.Pool['threadsPool'].remove(thread)
+                self.Pool['threadsPoolCounter'] -= 1
+            elif thread and thread.is_alive():
+                counter += 1
         print('Time taken to scan %s proxies: ' % self.finishedCounter, time()-startTime)
         self.Pool['started'] = False
 
@@ -223,18 +222,20 @@ class tpctProxyChecker:
                 continue
             while True:
                 try:
-                    while len(self.Pool['threadsPool']) == self.maxThreadsNumber:
-                        pass
-                    proxyThread = Thread(target=self.proxyCheckerThread, args=(proxy,), daemon=True)
-                    proxyThread.start()
-                    self.Pool['started'] = True
-                    self.Pool['threadsPool'].append(proxyThread)
-                    break
+                    if self.Pool['threadsPoolCounter'] < self.maxThreadsNumber:
+                        proxyThread = Thread(target=self.proxyCheckerThread, args=(proxy,), daemon=True)
+                        proxyThread.start()
+                        self.Pool['started'] = True
+                        self.Pool['threadsPool'].append(proxyThread)
+                        self.Pool['threadsPoolCounter'] += 1
+                        break
                 except RuntimeError:
                     pass
+                except Exception as e:
+                    print('an error occurred in main iterator', e)
+                    input()
 
         self.totalChecked = True
-
         checkerThread.join()
 
     def start(self):
