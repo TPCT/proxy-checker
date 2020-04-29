@@ -1,177 +1,258 @@
-class tpctProxyChecker:
-    class proxyChecker:
-        def __init__(self, proxyIp, proxyPort, proxyUsername=None, proxyPassword=None,
-                     testingWebsite='https://www.google.com', timeout=10):
-            self.proxyIp = proxyIp
-            self.proxyPort = proxyPort
-            self.proxyUsername = proxyUsername
-            self.proxyPassword = proxyPassword
-            self.disconnectionTime = timeout
-            self.testingWebsite = testingWebsite
-            self.result = self.checkProxy()
+class TPCTTime2Refill:
+    from requests import Session, adapters
+    from requests import exceptions as requestsExceptions
+    from urllib3 import exceptions as urllibExceptions
 
-        def __bool__(self):
-            return self.result
-
-        from requests import adapters
-        adapters.DEFAULT_RETRIES = 1
-
-        def __checkProxyHttp(self):
-            from requests import Session
-            proxydict = {'http': 'http://%s:%s@%s:%s' % (self.proxyUsername,
-                                                         self.proxyPassword,
-                                                         self.proxyIp,
-                                                         self.proxyPort)
-                         if self.proxyUsername else 'http://%s:%s' % (self.proxyIp,
-                                                                      self.proxyPort),
-                         'https': 'http://%s:%s@%s:%s' % (self.proxyUsername,
-                                                          self.proxyPassword,
-                                                          self.proxyIp,
-                                                          self.proxyPort)
-                         if self.proxyUsername else 'http://%s:%s' % (self.proxyIp,
-                                                                      self.proxyPort)
-                         }
-            result = False
-            with Session() as httpSession:
-                httpSession.proxies = proxydict
-                try:
-                    httpSession.get(self.testingWebsite, timeout=self.disconnectionTime)
-                    result = True
-                except KeyboardInterrupt:
-                    raise
-                except:
-                    pass
-            return result
-
-        def __checkProxyHttps(self):
-            from requests import Session
-            proxydict = {'http': 'https://%s:%s@%s:%s' % (self.proxyUsername,
-                                                          self.proxyPassword,
-                                                          self.proxyIp,
-                                                          self.proxyPort)
-                         if self.proxyUsername else 'https://%s:%s' % (self.proxyIp,
-                                                                       self.proxyPort),
-                         'https': 'https://%s:%s@%s:%s' % (self.proxyUsername,
-                                                           self.proxyPassword,
-                                                           self.proxyIp,
-                                                           self.proxyPort)
-                         if self.proxyUsername else 'https://%s:%s' % (self.proxyIp,
-                                                                       self.proxyPort)
-                         }
-            result = False
-            with Session() as httpSession:
-                httpSession.proxies = proxydict
-                try:
-                    httpSession.get(self.testingWebsite, timeout=self.disconnectionTime)
-                    result = True
-                except KeyboardInterrupt:
-                    raise
-                except:
-                    pass
-            return result
-
-        def __checkProxySock5(self):
-            from requests import Session
-
-            proxydict = {'http': 'socks5://%s:%s@%s:%s' % (self.proxyUsername,
-                                                           self.proxyPassword,
-                                                           self.proxyIp,
-                                                           self.proxyPort)
-                         if self.proxyUsername else 'socks5://%s:%s' % (self.proxyIp,
-                                                                        self.proxyPort),
-                         'https': 'socks5://%s:%s@%s:%s' % (self.proxyUsername,
-                                                            self.proxyPassword,
-                                                            self.proxyIp,
-                                                            self.proxyPort)
-                         if self.proxyUsername else 'socks5://%s:%s' % (self.proxyIp,
-                                                                        self.proxyPort)
-                         }
-
-            result = False
-
-            with Session() as httpSession:
-                httpSession.proxies = proxydict
-                try:
-                    httpSession.get(self.testingWebsite.replace('www.', ''), timeout=self.disconnectionTime)
-                    result = True
-                except KeyboardInterrupt:
-                    raise
-                except:
-                    pass
-            return result
-
-        def __checkProxySock4(self):
-            from requests import Session
-
-            proxydict = {'http': 'socks4://%s:%s@%s:%s' % (self.proxyUsername,
-                                                           self.proxyPassword,
-                                                           self.proxyIp,
-                                                           self.proxyPort)
-                         if self.proxyUsername else 'socks4://%s:%s' % (self.proxyIp,
-                                                                        self.proxyPort),
-                         'https': 'socks4://%s:%s@%s:%s' % (self.proxyUsername,
-                                                            self.proxyPassword,
-                                                            self.proxyIp,
-                                                            self.proxyPort)
-                         if self.proxyUsername else 'socks4://%s:%s' % (self.proxyIp,
-                                                                        self.proxyPort)
-                         }
-            result = False
-            with Session() as httpSession:
-                httpSession.proxies = proxydict
-                try:
-                    httpSession.get(self.testingWebsite.replace('www.', ''), timeout=self.disconnectionTime)
-                    result = True
-                except KeyboardInterrupt:
-                    raise
-                except:
-                    pass
-            return result
-
-        def checkProxy(self):
-
-            test = self.__checkProxyHttp()
-            test = self.__checkProxyHttps() if not test else test
-            test = self.__checkProxySock4() if not test else test
-            test = self.__checkProxySock5() if not test else test
-
-            return test
-
-    def __init__(self):
-        from warnings import simplefilter
-        simplefilter('ignore')
-        self.maxThreadsNumber = None
-        self.inputProxies = None
-        self.outputWorkingProxies = None
-        self.outputNonWorkingProxies = None
-        self.finishedProxies = None
-        self.proxyUsername = None
-        self.proxyPassword = None
-        self.proxyIp = None
-        self.proxyPort = None
-        self.disconnectionTime = None
-        self.testingWebsite = None
-        self.proxiesReader = None
-        self.workingProxiesWriter = None
-        self.nonworkingProxiesWriter = None
-        self.finishedProxiesWriter = None
+    def __init__(self, accountsListPath: str, proxiesListPath: str, timeSleep: int, timeout: int, validOutputPath: str,
+                 nonValidOutputPath: str, finishedPath: str, threadsNumber):
+        from os import path, stat
+        self.website = 'hola011'
+        self.path = path
+        self.stat = stat
+        self.accountsListPath = accountsListPath
+        self.proxiesListPath = proxiesListPath
+        self.timeSleep = timeSleep
+        self.maxThreadsNumber = threadsNumber if threadsNumber else 100
+        self.timeout = timeout
+        self.Pool = dict(started=False, threadsPool=list(), threadsPoolCounter=0)
+        self.validOutput = open(validOutputPath, 'a+') if validOutputPath else open('valid.txt', 'a+')
+        self.nonValidOutput = open(nonValidOutputPath, 'a+') if nonValidOutputPath else open('invalid.txt', 'a+')
+        self.finishedOutput = open(finishedPath, 'a+') if finishedPath else open('finished.txt', 'a+')
+        self.accountsList = None
+        self.proxiesList = None
+        self.openWebsite = None
         self.printingThreadVar = None
+        self.PoolRemoverVar = None
         self.totalChecked = False
         self.stopPrinting = False
-        self.validProxies = list()
-        self.Pool = dict(started=False, threadsPool=list(), threadsPoolCounter=0)
         self.workingCounter = 0
         self.nonWorkingCounter = 0
         self.finishedCounter = 0
-        self.status = 'start'
-        self.pool = 'False'
-        self.start()
+        self.proxiesCounter = 0
+        self.workingProxyCounter = 0
+        self.status = 'starting'
+        self.pooling = 'False'
+        self.generateProxiesList()
+        self.generateAccountsList()
+        self.iterator()
+
+    def generateAccountsList(self):
+        if self.path.exists(self.accountsListPath) and self.stat(self.accountsListPath).st_size != 0:
+            self.accountsList = open(self.accountsListPath, 'r+')
+        else:
+            raise FileNotFoundError('Please enter valid accounts list path')
+
+    def generateProxiesList(self):
+        if not self.proxiesListPath:
+            self.proxiesCounter = 1
+            self.proxiesList = ['0.0.0.0:80']
+            return None
+
+        if self.path.exists(self.proxiesListPath) and self.stat(self.proxiesListPath).st_size != 0:
+            self.proxiesList = open(self.proxiesListPath)
+            file = self.proxiesList
+            self.proxiesList = list(set(self.proxiesList.readlines()))
+            self.proxiesCounter = len(self.proxiesList)
+            file.close()
+        else:
+            raise FileNotFoundError('Please enter valid proxiesList path')
+
+    def generateSession(self, session):
+        if session is None:
+            return None
+
+        from random import randint, uniform
+        userAgent = [
+                'Mozilla/5.0 (Windows NT %s; Win64; x64) '
+                'AppleWebKit/%s (KHTML, like Gecko) '
+                'Chrome/%s.%s.%s.135 Safari/%s Edge/%s' % (uniform(6, 10),
+                                                           uniform(200, 500),
+                                                           randint(20, 50),
+                                                           randint(0, 10),
+                                                           randint(1000, 3000), uniform(200, 500), uniform(10, 15)),
+                'Mozilla/%s (X%s; Ubuntu; Linux x86_64; rv:%s)'
+                ' Gecko/%s Firefox/%s.%s.%s' % (uniform(1, 10),
+                                                randint(1, 20),
+                                                randint(1, 20),
+                                                randint(20000000, 21000000), randint(1, 20), randint(1, 10), randint(1, 20)),
+                'Mozilla/%s (Windows NT %s; WOW64) '
+                'AppleWebKit/%s (KHTML, like Gecko) '
+                'Chrome/%s.%s.%s.%s Safari/%s' % (uniform(1, 20), uniform(1, 20),
+                                                  uniform(200, 500), randint(1, 50), randint(0, 10),
+                                                  randint(1000, 2000), randint(100, 200), uniform(200, 1000))]
+
+        session.headers['User-Agent'] = userAgent[randint(0, len(userAgent) - 1)]
+        session.headers['host'] = 'www.hola011.com'
+        session.headers[
+            'accept'] = 'text/javascript, application/javascript, application/ecmascript, application/x-ecmascript, */*; q=0.01'
+        session.headers['accept-encoding'] = 'gzip, deflate, br'
+        session.headers['accept-language'] = 'en-US,en;q=0.5'
+        session.headers['keep-alive'] = 'keep-alive'
+        session.headers['referer'] = 'https://www.hola011.com/login/'
+        session.headers['x-requested-with'] = 'XMLHttpRequest'
+
+        return session
+
+    def checkProxy(self, proxy: str):
+        if not proxy:
+            return None
+
+        self.adapters.DEFAULT_RETRIES = 1
+        proxy = proxy.strip()
+        session = self.Session()
+        session.proxy = proxy
+
+        self.status = 'Proxy %s' % proxy
+
+        def checkHttp():
+            try:
+                session.proxies = dict(http='http://' + proxy, https='http://' + proxy) if proxy != '0.0.0.0:80' \
+                    else None
+                self.openWebsite = 'https://www.' + self.website + '.com'
+                session.get(self.openWebsite, timeout=float(self.timeout), stream=True)
+                return session
+            except KeyboardInterrupt:
+                raise
+            except Exception as e:
+                for x in e.args:
+                    if isinstance(x, self.urllibExceptions.MaxRetryError) or isinstance(x, self.urllibExceptions.ProtocolError):
+                        if isinstance(x.args[0], self.requestsExceptions.ReadTimeout):
+                            return session
+                return None
+
+        def checkHttps():
+            try:
+                session.proxies = dict(http='http://' + proxy, https='https://' + proxy) if proxy != '0.0.0.0:80' \
+                    else None
+                self.openWebsite = 'https://www.' + self.website + '.com'
+                session.get(self.openWebsite, timeout=float(self.timeout), stream=True)
+                return session
+            except KeyboardInterrupt:
+                raise
+            except Exception as e:
+                for x in e.args:
+                    if isinstance(x, self.urllibExceptions.MaxRetryError) or isinstance(x, self.urllibExceptions.ProtocolError):
+                        if isinstance(x.args[0], self.requestsExceptions.ReadTimeout):
+                            return session
+                return None
+
+        def checkSock4():
+
+            try:
+                session.proxies = dict(http='socks4://' + proxy, https='socks4://' + proxy) if proxy != '0.0.0.0:80' \
+                    else None
+                self.openWebsite = 'https://' + self.website + '.com'
+                session.get(self.openWebsite, timeout=float(self.timeout), stream=True)
+                return session
+            except KeyboardInterrupt:
+                raise
+            except Exception as e:
+                for x in e.args:
+                    if isinstance(x, self.urllibExceptions.MaxRetryError) or isinstance(x, self.urllibExceptions.ProtocolError):
+                        if isinstance(x.args[0], self.requestsExceptions.ReadTimeout):
+                            return session
+                return None
+
+        def checkSock5():
+            try:
+                session.proxies = dict(http='socks5://' + proxy, https='socks5://' + proxy) if proxy != '0.0.0.0:80' \
+                    else None
+                self.openWebsite = 'https://' + self.website + '.com'
+                session.get(self.openWebsite, timeout=float(self.timeout), stream=True)
+                return session
+            except KeyboardInterrupt:
+                raise
+            except Exception as e:
+                for x in e.args:
+                    if isinstance(x, self.urllibExceptions.MaxRetryError) or \
+                            isinstance(x, self.urllibExceptions.ProtocolError):
+                        if isinstance(x.args[0], self.requestsExceptions.ReadTimeout):
+                            return session
+                return None
+
+        httpResult = checkHttp()
+        httpResult = checkHttps() if not httpResult else httpResult
+        httpResult = checkSock4() if not httpResult else httpResult
+        httpResult = checkSock5() if not httpResult else httpResult
+
+        return httpResult, proxy
+
+    def generateProxy(self):
+        result = self.proxiesList[self.workingProxyCounter % self.proxiesCounter] if self.proxiesCounter else None
+        self.workingProxyCounter += 1 if self.proxiesCounter else 0
+        return result
+
+    def checkAccount(self, account, session):
+        if not session or not account:
+            return None
+
+        from urllib3 import exceptions as urllib3Exception
+        session.adapters.DEFAULT_RETRIES = 5
+        self.status = 'checking %s' % account
+
+        try:
+            resp = session.post(self.openWebsite + '/support/requestpassword',
+                                data={'RequestPasswordForm[credential]': account,
+                                      'yt0': 'Submit'}, timeout=self.timeout, stream=True)
+            if resp:
+                return resp.json()['success']
+        except KeyboardInterrupt:
+            raise
+        except ConnectionError as e:
+            for x in e.args:
+                if isinstance(x, urllib3Exception.ProtocolError):
+                    if isinstance(x.args[0], ConnectionResetError):
+                        if session.proxy in self.proxiesList:
+                            self.proxiesList.remove(session.proxy)
+                            self.proxiesCounter -= 1 if self.proxiesCounter > 0 else 0
+        except:
+            pass
+        return None
+
+    def checkerThread(self, account):
+        from time import sleep
+        account = account.strip()
+        if not account:
+            return
+
+        session = None
+        checked = None
+
+        while not checked or not session:
+            proxy = self.generateProxy()
+            if proxy:
+                session, proxy = self.checkProxy(proxy)
+            else:
+                return
+
+            if session is None:
+                self.proxiesList.remove(proxy) if proxy in self.proxiesList else None
+                self.proxiesCounter -= 1 if self.proxiesCounter > 0 else 0
+                continue
+
+            session = self.generateSession(session)
+            checked = self.checkAccount(account, session)
+
+            if checked is None:
+                continue
+            elif checked:
+                self.validOutput.write("%s\n" % account)
+                self.validOutput.flush()
+                self.workingCounter += 1
+            else:
+                self.nonValidOutput.write("%s\n" % account)
+                self.nonValidOutput.flush()
+                self.nonWorkingCounter += 1
+
+            self.finishedCounter += 1
+            self.finishedOutput.write("%s\n" % account)
+            self.finishedOutput.flush()
+            sleep(self.timeSleep)
+            return
 
     def threadPoolRemove(self):
-        from time import time
-        startTime = time()
         counter = 0
-        while self.Pool['threadsPool'] or not self.totalChecked:
+        while self.Pool['threadsPool'] or not self.totalChecked or not self.Pool['started']:
             thread = self.Pool['threadsPool'][counter % len(self.Pool['threadsPool'])] if self.Pool['threadsPool'] \
                 else None
             if thread and not thread.is_alive():
@@ -179,149 +260,109 @@ class tpctProxyChecker:
                 self.Pool['threadsPoolCounter'] -= 1
             elif thread and thread.is_alive():
                 counter += 1
-        self.Pool['started'] = False
-        self.stopPrinting = True
-        self.printingThreadVar.join()
-        print('Time taken to scan %s proxies: ' % self.finishedCounter, time()-startTime)
 
-    def proxyCheckerThread(self, proxyLine):
-        proxy = proxyLine.rstrip().rstrip('\\/')
-        if proxy in self.validProxies:
-            return
-        from re import match
-        searchingPattern = '((.*)\:(.*)?@)?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d{1,5})'
-        splitter = match(searchingPattern, proxy)
-        proxyUsername, proxyPassword, proxyIp, proxyPort = splitter.groups()[1:]
-        outputProxy = self.proxyChecker(proxyIp, proxyPort, proxyUsername, proxyPassword,
-                                        self.testingWebsite, self.disconnectionTime)
-        if outputProxy:
-            self.workingProxiesWriter.write('%s\n' % proxy)
-            self.workingCounter += 1
-        else:
-            self.nonworkingProxiesWriter.write('%s\n' % proxy)
-            self.nonWorkingCounter += 1
-        self.finishedCounter += 1
-        self.finishedProxiesWriter.write("%s\n" % proxy)
-        self.finishedProxiesWriter.flush()
-        self.workingProxiesWriter.flush()
-        self.nonworkingProxiesWriter.flush()
+        if self.Pool['started'] and self.totalChecked and not self.Pool['threadsPool']:
+            self.Pool['started'] = False
+            self.Pool['threadsPoolCounter'] = 0
+            self.validOutput.close()
+            self.nonValidOutput.close()
+            self.finishedOutput.close()
+            self.stopPrinting = True
+            self.printingThreadVar.join()
 
     def printingThread(self):
         finishedCounter = 0
         status = ''
         pooling = 'True'
+        proxyCounter = 0
+        threadsCounter = 0
         while not self.stopPrinting:
-            if finishedCounter != self.finishedCounter or status != self.status or pooling != self.pool:
-                print('Valid proxies:', self.workingCounter,
-                      '- Invalid proxies:', self.nonWorkingCounter,
-                      '- Total proxies:', self.finishedCounter,
+            if finishedCounter != self.finishedCounter or status != self.status or pooling != self.pooling \
+                    or proxyCounter != self.proxiesCounter or (threadsCounter != self.Pool['threadsPoolCounter']
+                                                               and self.status != 'starting'):
+                print('Valid Pins:', self.workingCounter,
+                      '- Invalid Pins:', self.nonWorkingCounter,
+                      '- Total Pins:', self.finishedCounter,
+                      '- Proxies:', self.proxiesCounter,
                       '- status:', self.status,
-                      '- Pooling: ', self.pool)
+                      '- Pooling:', self.pooling,
+                      '- Threads:', self.Pool['threadsPoolCounter'])
                 finishedCounter = self.finishedCounter
                 status = self.status
-                pooling = self.pool
+                pooling = self.pooling
+                proxyCounter = self.proxiesCounter
+                threadsCounter = self.Pool['threadsPoolCounter']
 
-    def proxylistIterator(self):
+    def iterator(self):
         from threading import Thread
-        from os import stat
-        checkerThread = Thread(target=self.threadPoolRemove, daemon=True)
+        self.PoolRemoverVar = Thread(target=self.threadPoolRemove, daemon=True)
         self.printingThreadVar = Thread(target=self.printingThread, daemon=True)
-        checkerThread.start()
+        self.PoolRemoverVar.start()
         self.printingThreadVar.start()
-        self.proxiesReader = open(self.inputProxies, 'r')
-        self.workingProxiesWriter = open(self.outputWorkingProxies, 'a+')
-        if stat(self.outputWorkingProxies).st_size != 0:
-            self.workingProxiesWriter.seek(0)
-            self.validProxies += self.workingProxiesWriter.read().splitlines(False)
-            self.validProxies = list(set(self.validProxies))
-            self.workingProxiesWriter.seek(0)
-            self.workingProxiesWriter.truncate()
-            self.workingProxiesWriter.writelines([x + '\n' for x in self.validProxies])
-        self.nonworkingProxiesWriter = open(self.outputNonWorkingProxies, 'a+')
-        self.finishedProxiesWriter = open(self.finishedProxies, 'a+')
-        for proxy in self.proxiesReader:
-            proxy = proxy.rstrip().rstrip('\\/')
-            if not proxy:
-                continue
-            while True:
+
+        for account in self.accountsList:
+            while self.proxiesCounter:
                 try:
                     if self.Pool['threadsPoolCounter'] < self.maxThreadsNumber:
-                        self.pool = 'False'
-                        proxyThread = Thread(target=self.proxyCheckerThread, args=(proxy,), daemon=True)
+                        self.pooling = 'False'
+                        proxyThread = Thread(name=account.rstrip(),
+                                             target=self.checkerThread, args=(account,), daemon=True)
                         proxyThread.start()
                         self.Pool['started'] = True
                         self.Pool['threadsPool'].append(proxyThread)
                         self.Pool['threadsPoolCounter'] += 1
                         break
                     else:
-                        self.pool = 'True'
+                        self.pooling = 'True'
                 except RuntimeError:
-                    self.pool = 'Waiting'
+                    self.pooling = 'Waiting'
+                except KeyboardInterrupt:
+                    raise
                 except Exception as e:
-                    print('an error occurred in main iterator', e)
-                    input()
-
-        self.totalChecked = True
-        checkerThread.join()
-
-    def start(self):
-        from os import path
-        greetingMsg = '''
-         _____  ____  ____  _____    ____  ____  ____ ___  ____  _
-        /__ __\/  __\/   _\/__ __\  /  __\/  __\/  _ \\  \//\  \//
-          / \  |  \/||  /    / \    |  \/||  \/|| / \| \  /  \  / 
-          | |  |  __/|  \__  | |    |  __/|    /| \_/| /  \  / /  
-          \_/  \_/   \____/  \_/    \_/   \_/\_\\____//__/\\/_/   
-        https://www.facebook.com/taylor.ackerley.9
-        https://www.github.com/TPCT
-        '''
-        print(greetingMsg)
-        while True:
-            if self.workingProxiesWriter:
-                self.workingProxiesWriter.close()
-            if self.nonworkingProxiesWriter:
-                self.nonworkingProxiesWriter.close()
-            if self.finishedProxiesWriter:
-                self.finishedProxiesWriter.close()
-            if self.proxiesReader:
-                self.proxiesReader.close()
-            self.maxThreadsNumber = None
-            self.inputProxies = None
-            self.outputWorkingProxies = None
-            self.outputNonWorkingProxies = None
-            self.finishedProxies = None
-            self.proxyUsername = None
-            self.proxyPassword = None
-            self.proxyIp = None
-            self.proxyPort = None
-            self.disconnectionTime = None
-            self.testingWebsite = None
-            self.proxiesReader = None
-            self.workingProxiesWriter = None
-            self.nonworkingProxiesWriter = None
-            self.finishedProxiesWriter = None
-            self.totalChecked = False
-            self.validProxies = list()
-            self.Pool = dict(started=False, threadsPool=list(), threadsPoolCounter=0)
-            self.workingCounter = 0
-            self.nonWorkingCounter = 0
-            self.finishedCounter = 0
-            inputProxiesPath = input('Please enter input proxies path: ').strip().strip('\'"')
-            nonWorkingProxiesPath = input('Please enter non-working proxies path: ').strip().strip('\'"')
-            workingProxiesPath = input('Please enter working proxies path: ').strip().strip('\'"')
-            finishedProxiesPath = input('please enter finished Proxies Path: ').strip().strip('\'"')
-            disconnectionTime = input('Please enter disconnection time: ').strip()
-            threadsNumber = input('please enter threads number: ').strip()
-            testingWebsite = input('please enter website to test: ').strip()
-            if path.isfile(inputProxiesPath):
-                self.inputProxies = inputProxiesPath
-                self.outputWorkingProxies = workingProxiesPath if workingProxiesPath else 'validProxies.txt'
-                self.outputNonWorkingProxies = nonWorkingProxiesPath if nonWorkingProxiesPath else 'invalidProxies.txt'
-                self.finishedProxies = finishedProxiesPath if finishedProxiesPath else 'finishedProxies.txt'
-                self.disconnectionTime = int(disconnectionTime) if disconnectionTime.isnumeric() else 1
-                self.testingWebsite = testingWebsite if testingWebsite else 'https://www.google.com'
-                self.maxThreadsNumber = float(threadsNumber) if threadsNumber.isnumeric() else 100
-                self.proxylistIterator()
+                    print('an error occurred in main iterator', e.args)
+            else:
+                self.totalChecked = True
+                self.PoolRemoverVar.join()
+                print('all Proxies has been block')
+                data = self.accountsList.read()
+                self.accountsList.seek(0)
+                self.accountsList.truncate()
+                self.accountsList.write(data)
+                self.accountsList.close()
+                break
 
 
-tpctProxyChecker()
+def start():
+    helloMessage = r'''
+    _________ _______  _______ _________  __________________ _______  _______  _______  _______  _______  _______ _________ _        _       
+    \__   __/(  ____ )(  ____ \\__   __/  \__   __/\__   __/(       )(  ____ \/ ___   )(  ____ )(  ____ \(  ____ \\__   __/( \      ( \      
+       ) (   | (    )|| (    \/   ) (        ) (      ) (   | () () || (    \/\/   )  || (    )|| (    \/| (    \/   ) (   | (      | (      
+       | |   | (____)|| |         | |        | |      | |   | || || || (__        /   )| (____)|| (__    | (__       | |   | |      | |      
+       | |   |  _____)| |         | |        | |      | |   | |(_)| ||  __)     _/   / |     __)|  __)   |  __)      | |   | |      | |      
+       | |   | (      | |         | |        | |      | |   | |   | || (       /   _/  | (\ (   | (      | (         | |   | |      | |      
+       | |   | )      | (____/\   | |        | |   ___) (___| )   ( || (____/\(   (__/\| ) \ \__| (____/\| )      ___) (___| (____/\| (____/\
+       )_(   |/       (_______/   )_(        )_(   \_______/|/     \|(_______/\_______/|/   \__/(_______/|/       \_______/(_______/(_______/
+       '''
+    print(helloMessage)
+    while True:
+        accountsListPath = input('Please enter accounts list Path: ').strip().strip('\'"')
+        proxylistPath = input('Please enter proxies Path: ').strip().strip('\'"')
+        validOutput = input('please enter valid output file path: ').strip().strip('\'"')
+        invalidOutput = input('please enter invalid output file path: ').strip().strip('\'"')
+        finishedOutput = input('please enter finished output file path: ').strip().strip('\'"')
+        sleepTime = input('Please enter sleep Time: ').strip()
+        proxyTimeout = input('Please enter timeout to change proxy: ').strip()
+        threadsNumber = input('please enter threads number: ').strip()
+        try:
+            sleepTime = float(sleepTime) if sleepTime.isnumeric() else 0
+            proxyTimeout = float(proxyTimeout) if proxyTimeout.isnumeric() else 10
+            threadsNumber = int(threadsNumber) if threadsNumber.isnumeric() else 100
+            TPCTTime2Refill(accountsListPath, proxylistPath, sleepTime, proxyTimeout,
+                            validOutput, invalidOutput, finishedOutput, threadsNumber)
+        except KeyboardInterrupt:
+            raise
+        except Exception as e:
+            print('[Error %s]' % e.args)
+
+
+start()
