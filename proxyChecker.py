@@ -318,9 +318,9 @@ class tpctProxyChecker:
                 self.outputWorkingProxies = workingProxiesPath if workingProxiesPath else 'validProxies.txt'
                 self.outputNonWorkingProxies = nonWorkingProxiesPath if nonWorkingProxiesPath else 'invalidProxies.txt'
                 self.finishedProxies = finishedProxiesPath if finishedProxiesPath else 'finishedProxies.txt'
-                self.disconnectionTime = int(disconnectionTime) if disconnectionTime.isalnum() else 1
+                self.disconnectionTime = int(disconnectionTime) if disconnectionTime.isnumeric() else 1
                 self.testingWebsite = testingWebsite if testingWebsite else 'https://www.google.com'
-                self.maxThreadsNumber = threadsNumber if threadsNumber else 100
+                self.maxThreadsNumber = float(threadsNumber) if threadsNumber.isnumeric() else 100
                 self.proxylistIterator()
 
 
