@@ -155,12 +155,16 @@ class tpctProxyChecker:
         self.workingProxiesWriter = None
         self.nonworkingProxiesWriter = None
         self.finishedProxiesWriter = None
+        self.printingThreadVar = None
         self.totalChecked = False
+        self.stopPrinting = False
         self.validProxies = list()
-        self.Pool = dict(started=False, threadsPool=list(), threadsPoolCounter = 0)
+        self.Pool = dict(started=False, threadsPool=list(), threadsPoolCounter=0)
         self.workingCounter = 0
         self.nonWorkingCounter = 0
         self.finishedCounter = 0
+        self.status = 'start'
+        self.pool = 'False'
         self.start()
 
     def threadPoolRemove(self):
@@ -175,8 +179,10 @@ class tpctProxyChecker:
                 self.Pool['threadsPoolCounter'] -= 1
             elif thread and thread.is_alive():
                 counter += 1
-        print('Time taken to scan %s proxies: ' % self.finishedCounter, time()-startTime)
         self.Pool['started'] = False
+        self.stopPrinting = True
+        self.printingThreadVar.join()
+        print('Time taken to scan %s proxies: ' % self.finishedCounter, time()-startTime)
 
     def proxyCheckerThread(self, proxyLine):
         proxy = proxyLine.rstrip().rstrip('\\/')
@@ -200,11 +206,28 @@ class tpctProxyChecker:
         self.workingProxiesWriter.flush()
         self.nonworkingProxiesWriter.flush()
 
+    def printingThread(self):
+        finishedCounter = 0
+        status = ''
+        pooling = 'True'
+        while not self.stopPrinting:
+            if finishedCounter != self.finishedCounter or status != self.status or pooling != self.pool:
+                print('Valid proxies:', self.workingCounter,
+                      '- Invalid proxies:', self.nonWorkingCounter,
+                      '- Total proxies:', self.finishedCounter,
+                      '- status:', self.status,
+                      '- Pooling: ', self.pool)
+                finishedCounter = self.finishedCounter
+                status = self.status
+                pooling = self.pool
+
     def proxylistIterator(self):
         from threading import Thread
         from os import stat
         checkerThread = Thread(target=self.threadPoolRemove, daemon=True)
+        self.printingThreadVar = Thread(target=self.printingThread, daemon=True)
         checkerThread.start()
+        self.printingThreadVar.start()
         self.proxiesReader = open(self.inputProxies, 'r')
         self.workingProxiesWriter = open(self.outputWorkingProxies, 'a+')
         if stat(self.outputWorkingProxies).st_size != 0:
@@ -223,14 +246,17 @@ class tpctProxyChecker:
             while True:
                 try:
                     if self.Pool['threadsPoolCounter'] < self.maxThreadsNumber:
+                        self.pool = 'False'
                         proxyThread = Thread(target=self.proxyCheckerThread, args=(proxy,), daemon=True)
                         proxyThread.start()
                         self.Pool['started'] = True
                         self.Pool['threadsPool'].append(proxyThread)
                         self.Pool['threadsPoolCounter'] += 1
                         break
+                    else:
+                        self.pool = 'True'
                 except RuntimeError:
-                    pass
+                    self.pool = 'Waiting'
                 except Exception as e:
                     print('an error occurred in main iterator', e)
                     input()
@@ -276,7 +302,7 @@ class tpctProxyChecker:
             self.finishedProxiesWriter = None
             self.totalChecked = False
             self.validProxies = list()
-            self.Pool = dict(started=False, threadsPool=list())
+            self.Pool = dict(started=False, threadsPool=list(), threadsPoolCounter=0)
             self.workingCounter = 0
             self.nonWorkingCounter = 0
             self.finishedCounter = 0
