@@ -1,4 +1,8 @@
 class tpctProxyChecker:
+    from time import time
+    from threading import Thread
+    from os import stat, path
+    
     class proxyChecker:
         def __init__(self, proxyIp, proxyPort, proxyUsername=None, proxyPassword=None,
                      testingWebsite='https://www.google.com', timeout=10):
@@ -138,8 +142,6 @@ class tpctProxyChecker:
             return test
 
     def __init__(self):
-        from warnings import simplefilter
-        simplefilter('ignore')
         self.maxThreadsNumber = None
         self.inputProxies = None
         self.outputWorkingProxies = None
@@ -168,8 +170,7 @@ class tpctProxyChecker:
         self.start()
 
     def threadPoolRemove(self):
-        from time import time
-        startTime = time()
+        startTime = self.time()
         counter = 0
         while self.Pool['threadsPool'] or not self.totalChecked:
             thread = self.Pool['threadsPool'][counter % len(self.Pool['threadsPool'])] if self.Pool['threadsPool'] \
@@ -182,7 +183,7 @@ class tpctProxyChecker:
         self.Pool['started'] = False
         self.stopPrinting = True
         self.printingThreadVar.join()
-        print('Time taken to scan %s proxies: ' % self.finishedCounter, time()-startTime)
+        print('Time taken to scan %s proxies: ' % self.finishedCounter, self.time()-startTime)
 
     def proxyCheckerThread(self, proxyLine):
         proxy = proxyLine.rstrip().rstrip('\\/')
@@ -222,15 +223,13 @@ class tpctProxyChecker:
                 pooling = self.pool
 
     def proxylistIterator(self):
-        from threading import Thread
-        from os import stat
-        checkerThread = Thread(target=self.threadPoolRemove, daemon=True)
-        self.printingThreadVar = Thread(target=self.printingThread, daemon=True)
+        checkerThread = self.Thread(target=self.threadPoolRemove, daemon=True)
+        self.printingThreadVar = self.Thread(target=self.printingThread, daemon=True)
         checkerThread.start()
         self.printingThreadVar.start()
         self.proxiesReader = open(self.inputProxies, 'r')
         self.workingProxiesWriter = open(self.outputWorkingProxies, 'a+')
-        if stat(self.outputWorkingProxies).st_size != 0:
+        if self.stat(self.outputWorkingProxies).st_size != 0:
             self.workingProxiesWriter.seek(0)
             self.validProxies += self.workingProxiesWriter.read().splitlines(False)
             self.validProxies = list(set(self.validProxies))
@@ -247,7 +246,7 @@ class tpctProxyChecker:
                 try:
                     if self.Pool['threadsPoolCounter'] < self.maxThreadsNumber:
                         self.pool = 'False'
-                        proxyThread = Thread(target=self.proxyCheckerThread, args=(proxy,), daemon=True)
+                        proxyThread = self.Thread(target=self.proxyCheckerThread, args=(proxy,), daemon=True)
                         proxyThread.start()
                         self.Pool['started'] = True
                         self.Pool['threadsPool'].append(proxyThread)
@@ -265,7 +264,6 @@ class tpctProxyChecker:
         checkerThread.join()
 
     def start(self):
-        from os import path
         greetingMsg = '''
          _____  ____  ____  _____    ____  ____  ____ ___  ____  _
         /__ __\/  __\/   _\/__ __\  /  __\/  __\/  _ \\  \//\  \//
@@ -300,12 +298,16 @@ class tpctProxyChecker:
             self.workingProxiesWriter = None
             self.nonworkingProxiesWriter = None
             self.finishedProxiesWriter = None
+            self.printingThreadVar = None
             self.totalChecked = False
+            self.stopPrinting = False
             self.validProxies = list()
             self.Pool = dict(started=False, threadsPool=list(), threadsPoolCounter=0)
             self.workingCounter = 0
             self.nonWorkingCounter = 0
             self.finishedCounter = 0
+            self.status = 'start'
+            self.pool = 'False'
             inputProxiesPath = input('Please enter input proxies path: ').strip().strip('\'"')
             nonWorkingProxiesPath = input('Please enter non-working proxies path: ').strip().strip('\'"')
             workingProxiesPath = input('Please enter working proxies path: ').strip().strip('\'"')
@@ -313,7 +315,7 @@ class tpctProxyChecker:
             disconnectionTime = input('Please enter disconnection time: ').strip()
             threadsNumber = input('please enter threads number: ').strip()
             testingWebsite = input('please enter website to test: ').strip()
-            if path.isfile(inputProxiesPath):
+            if self.path.isfile(inputProxiesPath):
                 self.inputProxies = inputProxiesPath
                 self.outputWorkingProxies = workingProxiesPath if workingProxiesPath else 'validProxies.txt'
                 self.outputNonWorkingProxies = nonWorkingProxiesPath if nonWorkingProxiesPath else 'invalidProxies.txt'
